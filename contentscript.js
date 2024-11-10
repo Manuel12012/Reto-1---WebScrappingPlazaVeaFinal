@@ -1,39 +1,61 @@
-const port =chrome.runtime.connect({name: "background"});
+let port = chrome.runtime.connect({ name: "background" });
+console.log("Ejecutando content script plaza vea Frutas y Verduras versión 2.0");
 
-console.log("Ejecutando content script plaza vea Frutas y Verduras version 2.0");
-
-
-
-
-function delay(time){
-    return new Promise (resolve=>setTimeout(resolve,time));
-}
-
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse){
-        if(request.cmd ==="scrap"){
-           const products=  scrappingProducts()
-            port.postMessage({cmd:"finish-scrap",products});
-           // sendResponse({products});
-           
+function getCategoryLinks() {
+    const categoryLinks = [];
+    const categoryElements = document.querySelectorAll('ul.dropdown__list.dropdown__list--active a[href^="/"]');
+    categoryElements.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && href.startsWith("/")) {
+            categoryLinks.push("https://www.plazavea.com.pe" + href);
         }
-    } 
-
-);
+    });
+    return categoryLinks;
+}
 
 function scrappingProducts() {
-      let cards = document.querySelectorAll("div.showcase-grid>div>.Showcase__content");
-    cards= [...cards]
-    const products = cards.map(x=>{
-    const name = x.querySelector("button.Showcase__name")?.textContent
-    const sellerName = x.querySelector(".Showcase__SellerName")?.textContent;
-    const salePrice = x.querySelector("div.Showcase__salePrice")?.textContent
-    return {name,sellerName,salePrice}
-})
-console.log(products)
-return products
+    let cards = document.querySelectorAll("div.showcase-grid>div>.Showcase__content");
+    cards = [...cards];
+    const products = cards.map(x => {
+        const name = x.querySelector("button.Showcase__name")?.textContent;
+        const sellerName = x.querySelector(".Showcase__SellerName")?.textContent;
+        const salePrice = x.querySelector("div.Showcase__salePrice")?.textContent;
+        return { name, sellerName, salePrice };
+    });
+    console.log(products);
+    return products;
 }
 
-port.onMessage.addListener(function(msg){
+function sendToBackground(products) {
+    if (port) {
+        // Enviar productos al background solo si port está conectado
+        port.postMessage({ cmd: "finish-scrap", products });
+    } else {
+        console.error('La conexión con el background ha sido cerrada.');
+    }
+}
 
+async function scrapeAllCategories() {
+    const categoryLinks = getCategoryLinks();
+    const allProducts = [];
+
+    for (let link of categoryLinks) {
+        window.location.href = link; // Navegar a la categoría
+        await delay(3000); // Esperar que la página cargue
+
+        const products = scrappingProducts(); // Extraer productos de esta página
+        allProducts.push(...products); // Agregar productos de esta categoría
+    }
+
+    sendToBackground(allProducts);  // Enviar los productos al background una vez que haya terminado
+}
+
+function delay(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
+}
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.cmd === "scrap") {
+        scrapeAllCategories();  // Iniciar el scraping cuando se recibe el comando
+    }
 });
