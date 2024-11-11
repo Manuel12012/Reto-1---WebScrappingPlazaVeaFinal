@@ -7,7 +7,7 @@ chrome.runtime.onConnect.addListener(function (port) {
         if (msg.cmd === "finish-scrap") {
             const { products } = msg;
 
-            // Eliminar los productos antiguos antes de guardar los nuevos
+            
             chrome.storage.local.remove("products", function () {
                 // Verifica si ocurrió un error al eliminar
                 if (chrome.runtime.lastError) {
@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 function scrapeCategories() {
     const categoryLinks = getCategoryLinks();
 
-    // Navegar por cada categoría y hacer el scraping
+    
     for (let i = 0; i < categoryLinks.length; i++) {
         fetchCategoryProducts(categoryLinks[i], i);
     }
@@ -58,14 +58,14 @@ function scrapeCategories() {
 
 // Función para hacer scraping de los productos en cada categoría
 async function fetchCategoryProducts(link, index) {
-    // Ir a la página de la categoría
+    
     window.location.href = link;
-    await new Promise(resolve => setTimeout(resolve, 3000));  // Esperar 3 segundos para cargar la página
+    await new Promise(resolve => setTimeout(resolve, 3000));  
 
-    // Obtener productos de la categoría actual
+    
     const products = scrappingProducts();
 
-    // Mandar los productos al background después de que la página haya cargado
+    
     chrome.runtime.sendMessage({ cmd: "finish-scrap", products });
 }
 

@@ -37,11 +37,11 @@ function sendToBackground(products) {
 // El content-script solo se encarga de extraer los productos de la página actual
 function scrapeCurrentPage() {
     const products = scrappingProducts();
-    sendToBackground(products);  // Enviar productos al background
+    sendToBackground(products);  
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.cmd === "scrap") {
-        scrapeCurrentPage();  // Realizar scraping de la página actual
+        scrapeCurrentPage();  
     }
 });
