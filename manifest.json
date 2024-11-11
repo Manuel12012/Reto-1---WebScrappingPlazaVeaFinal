@@ -1,20 +1,25 @@
 {
     "manifest_version": 3,
-    "name": "Plaza vea Extension Scrapping version Frutas y Verduras",
+    "name": "Plaza Vea Scraper",
     "version": "1.0",
-    "description": "Una extensión simple de ejemplo para Chrome.",
-    "permissions": ["activeTab", "scripting",  "tabs",  "storage"],
+    "description": "Scraping de productos de Plaza Vea",
+    "permissions": [
+      "activeTab",
+      "tabs",
+      "storage",
+      "scripting"
+    ],
     "background": {
-        "service_worker": "background.js"
+      "service_worker": "background.js"
     },
-    
     "content_scripts": [
-        {
-            "matches": ["https://www.plazavea.com.pe/*"],
-            "js": ["./contentscript.js"]
-        }
+      {
+        "matches": ["https://www.plazavea.com.pe/*"],
+        "js": ["contentscript.js"]
+      }
     ],
     "action": {
-        "default_popup": "./popup/index.html"
+      "default_popup": "./popup/index.html"
     }
-}
+  }
+  

@@ -1,5 +1,5 @@
-let port = chrome.runtime.connect({ name: "background" });
-console.log("Ejecutando content script plaza vea Frutas y Verduras versión 2.0");
+let port = chrome.runtime.connect({name: "background"});
+console.log("Ejecutando content script Plaza Vea");
 
 function getCategoryLinks() {
     const categoryLinks = [];
@@ -28,34 +28,20 @@ function scrappingProducts() {
 
 function sendToBackground(products) {
     if (port) {
-        // Enviar productos al background solo si port está conectado
         port.postMessage({ cmd: "finish-scrap", products });
     } else {
         console.error('La conexión con el background ha sido cerrada.');
     }
 }
 
-async function scrapeAllCategories() {
-    const categoryLinks = getCategoryLinks();
-    const allProducts = [];
-
-    for (let link of categoryLinks) {
-        window.location.href = link; // Navegar a la categoría
-        await delay(3000); // Esperar que la página cargue
-
-        const products = scrappingProducts(); // Extraer productos de esta página
-        allProducts.push(...products); // Agregar productos de esta categoría
-    }
-
-    sendToBackground(allProducts);  // Enviar los productos al background una vez que haya terminado
-}
-
-function delay(time) {
-    return new Promise(resolve => setTimeout(resolve, time));
+// El content-script solo se encarga de extraer los productos de la página actual
+function scrapeCurrentPage() {
+    const products = scrappingProducts();
+    sendToBackground(products);  // Enviar productos al background
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.cmd === "scrap") {
-        scrapeAllCategories();  // Iniciar el scraping cuando se recibe el comando
+        scrapeCurrentPage();  // Realizar scraping de la página actual
     }
 });
